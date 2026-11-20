@@ -1,4 +1,4 @@
-# Chubb APAC Claims Workspace
+# Claims Workspace
 
 A local assessment prototype for claimant self-service and claims operations. The Angular app uses a single REST API backed by a Spring Boot modular monolith and a SQLite file.
 

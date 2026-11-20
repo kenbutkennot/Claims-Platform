@@ -11,7 +11,7 @@
   <artifactId>claims-api</artifactId>
   <version>0.1.0</version>
   <name>claims-api</name>
-  <description>Claims workflow API for the Chubb APAC take-home assessment</description>
+  <description>Claims workflow API for the take-home assessment</description>
   <properties>
     <java.version>21</java.version>
   </properties>
