@@ -76,3 +76,14 @@
 **Reasoning:** The browser sent the correct seeded claimant UUID. The 403 body was `Invalid CORS request`: `WebConfig` allowed only `http://localhost:4200`, while the shared browser used `http://127.0.0.1:4201`. This was a CORS-origin rejection, not a claimant authorization failure.
 
 **Verification:** Added exact allowlist entries for `localhost` and `127.0.0.1` on Angular ports 4200 and 4201, plus a MockMvc OPTIONS test that verifies these origins can POST with the demo header. Backend tests passed 9/9. The already-running backend process still has the old CORS config; restart it before retrying claim submission.
+
+## Entry 8 - Include managers as claim assignees
+**Prompt / instruction:** Include managers among staff who can be assigned to any claim, while excluding claimants from the assignment choices.
+
+**Suggestion:** Provide a staff-protected assignee endpoint listing officers and managers, and enforce the same allowed roles on assignment.
+
+**Decision:** Accepted for all claims; no high-profile claim marker is needed.
+
+**Reasoning:** The general demo-user list includes claimants and is intended for role switching, not assignment. The dedicated `/api/demo/assignees` endpoint and backend assignment check now both allow only officers and managers; the dropdown labels each assignee's role.
+
+**Verification:** Added service regression tests for assignee role filtering, manager assignment, and claimant rejection. Backend tests passed 11/11, Angular production build passed, and `git diff --check` passed. The browser's currently running backend returns 404 for `/api/demo/assignees`, confirming it must be restarted to load this route before the dropdown can populate.

@@ -16,6 +16,13 @@ export interface DemoUser {
   role: Role;
 }
 
+export interface ClaimAssignee {
+  id: string;
+  name: string;
+  email: string;
+  role: 'OFFICER' | 'MANAGER';
+}
+
 export interface InformationRequest {
   id: string;
   message: string;

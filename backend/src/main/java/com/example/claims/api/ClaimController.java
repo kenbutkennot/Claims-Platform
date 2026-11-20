@@ -100,6 +100,11 @@ public class ClaimController {
         return claims.officers(actorId).stream().map(ClaimController::toUserDto).toList();
     }
 
+    @GetMapping("/demo/assignees")
+    public List<UserDto> assignees(@RequestHeader("X-Demo-User") UUID actorId) {
+        return claims.assignees(actorId).stream().map(ClaimController::toUserDto).toList();
+    }
+
     static UserDto toUserDto(User user) {
         return new UserDto(user.getId(), user.getName(), user.getEmail(), user.getRole());
     }

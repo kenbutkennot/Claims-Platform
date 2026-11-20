@@ -49,7 +49,7 @@
         <thead><tr>
           <th>Claim</th><th>Type</th><th>Incident date</th><th>Submitted</th>
           @if (session.current()?.role !== 'CLAIMANT') { <th>Assigned to</th> }
-          <th>Status</th><th class="amount-column">Estimate</th>
+          <th>Status</th><th class="amount-column">Estimate</th><th class="amount-column">Settled amount</th>
         </tr></thead>
         <tbody>
           @for (claim of claims(); track claim.id) {
@@ -61,6 +61,10 @@
               @if (session.current()?.role !== 'CLAIMANT') { <td>{{ claim.assignedOfficerName || 'Unassigned' }}</td> }
               <td><span class="status-badge" [class]="'status-badge status-' + claim.status.toLowerCase()">{{ statusLabel(claim.status) }}</span></td>
               <td class="amount-column">{{ claim.estimatedAmount | number:'1.2-2' }}</td>
+              <td class="amount-column">
+                @if (claim.settledAmount !== null) { SGD {{ claim.settledAmount | number:'1.2-2' }} }
+                @else { — }
+              </td>
             </tr>
           }
         </tbody>

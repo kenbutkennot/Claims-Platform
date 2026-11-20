@@ -115,17 +115,19 @@ public class ClaimService {
     public ClaimDto assign(UUID actorId, UUID claimId, AssignRequest request) {
         User actor = actors.requireUser(actorId);
         actors.requireStaff(actor);
-        User officer = users.findById(request.officerId())
-                .orElseThrow(() -> new EntityNotFoundException("Officer not found"));
-        if (officer.getRole() != Role.OFFICER) throw new IllegalArgumentException("Assignee must be an officer");
-        if (actor.getRole() == Role.OFFICER && !actor.getId().equals(officer.getId())) {
+        User assignee = users.findById(request.officerId())
+                .orElseThrow(() -> new EntityNotFoundException("Assignee not found"));
+        if (assignee.getRole() != Role.OFFICER && assignee.getRole() != Role.MANAGER) {
+            throw new IllegalArgumentException("Assignee must be an officer or manager");
+        }
+        if (actor.getRole() == Role.OFFICER && !actor.getId().equals(assignee.getId())) {
             throw forbidden("Officers can only pick up claims for themselves");
         }
         Claim claim = requireClaim(claimId);
         ClaimStatus previous = claim.getStatus();
         Instant now = clock.instant();
-        claim.assign(officer, now);
-        record(claim, previous, claim.getStatus(), "ASSIGNED", "Assigned to " + officer.getName(), actor, now);
+        claim.assign(assignee, now);
+        record(claim, previous, claim.getStatus(), "ASSIGNED", "Assigned to " + assignee.getName(), actor, now);
         return toDto(claim);
     }
 
@@ -223,6 +225,13 @@ public class ClaimService {
         User actor = actors.requireUser(actorId);
         actors.requireStaff(actor);
         return users.findByRoleOrderByName(Role.OFFICER);
+    }
+
+    @Transactional(readOnly = true)
+    public List<User> assignees(UUID actorId) {
+        User actor = actors.requireUser(actorId);
+        actors.requireStaff(actor);
+        return users.findByRoleInOrderByName(List.of(Role.OFFICER, Role.MANAGER));
     }
 
     private Claim requireClaim(UUID id) {

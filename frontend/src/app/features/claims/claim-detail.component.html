@@ -32,7 +32,7 @@
           <div class="section-title"><h2>Decision</h2><span>{{ item.status === 'REJECTED' ? 'Not approved' : item.status === 'SETTLED' ? 'Settled' : 'Approved' }}</span></div>
           <p>{{ item.decisionReason }}</p>
           @if (item.approvedAmount !== null) { <div class="decision-amount"><span>Approved amount</span><strong>SGD {{ item.approvedAmount | number:'1.2-2' }}</strong></div> }
-          @if (item.settledAt) { <div class="decision-amount"><span>Settlement</span><strong>SGD {{ item.settledAmount | number:'1.2-2' }} on {{ item.settledAt | date:'d MMM y' }}</strong></div> }
+          @if (item.settledAmount !== null) { <div class="decision-amount"><span>Settled amount</span><strong>SGD {{ item.settledAmount | number:'1.2-2' }}@if (item.settledAt) { on {{ item.settledAt | date:'d MMM y' }} }</strong></div> }
         </section>
       }
 
@@ -64,10 +64,10 @@
           <h2>Claim actions</h2>
           <p class="panel-hint">Actions are checked by the API against your demo role.</p>
           <form [formGroup]="assignmentForm" (ngSubmit)="assign()" class="action-form">
-            <label class="form-field"><span>Assigned officer</span>
+            <label class="form-field"><span>Assigned staff member</span>
               <select formControlName="officerId">
-                <option value="">Select an officer</option>
-                @for (officer of officers(); track officer.id) { <option [value]="officer.id">{{ officer.name }}</option> }
+                <option value="">Select an assignee</option>
+                @for (assignee of assignees(); track assignee.id) { <option [value]="assignee.id">{{ assignee.name }} ({{ assignee.role | titlecase }})</option> }
               </select>
             </label>
             <button class="button button-secondary button-full" [disabled]="busy() || assignmentForm.invalid">Assign claim</button>

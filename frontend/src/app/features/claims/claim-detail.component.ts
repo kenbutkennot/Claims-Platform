@@ -3,7 +3,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
-import { Claim, ClaimStatus, DemoUser } from '../../core/models/claims';
+import { Claim, ClaimAssignee, ClaimStatus } from '../../core/models/claims';
 import { ClaimsApiService } from '../../core/services/claims-api.service';
 import { DemoSessionService } from '../../core/services/demo-session.service';
 import { apiErrorMessage } from '../../shared/api-error';
@@ -17,7 +17,7 @@ import { apiErrorMessage } from '../../shared/api-error';
 export class ClaimDetailComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   readonly claim = signal<Claim | null>(null);
-  readonly officers = signal<DemoUser[]>([]);
+  readonly assignees = signal<ClaimAssignee[]>([]);
   readonly loading = signal(true);
   readonly busy = signal(false);
   readonly error = signal('');
@@ -66,7 +66,7 @@ export class ClaimDetailComponent implements OnInit {
       if (claim.approvedAmount !== null && this.settlementForm.controls.amount.value === null) {
         this.settlementForm.controls.amount.setValue(claim.approvedAmount);
       }
-      if (this.staff) this.officers.set(await firstValueFrom(this.api.users()));
+      if (this.staff) this.assignees.set(await firstValueFrom(this.api.assignees()));
     } catch (error) {
       this.error.set(apiErrorMessage(error));
     } finally {

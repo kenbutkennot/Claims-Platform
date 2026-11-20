@@ -1,6 +1,7 @@
 package com.example.claims.application;
 
 import com.example.claims.application.ClaimDtos.CreateClaimRequest;
+import com.example.claims.application.ClaimDtos.AssignRequest;
 import com.example.claims.application.ClaimDtos.InformationRequestBody;
 import com.example.claims.application.ClaimDtos.InformationResponseBody;
 import com.example.claims.domain.Claim;
@@ -33,6 +34,7 @@ import static org.mockito.Mockito.*;
 class ClaimServiceTest {
     private static final UUID CLAIMANT_ID = UUID.fromString("10000000-0000-4000-8000-000000000001");
     private static final UUID OFFICER_ID = UUID.fromString("20000000-0000-4000-8000-000000000001");
+    private static final UUID MANAGER_ID = UUID.fromString("30000000-0000-4000-8000-000000000001");
 
     private UserRepository users;
     private ClaimRepository claims;
@@ -41,6 +43,7 @@ class ClaimServiceTest {
     private ClaimService service;
     private User claimant;
     private User officer;
+    private User manager;
 
     @BeforeEach
     void setUp() {
@@ -50,9 +53,13 @@ class ClaimServiceTest {
         history = mock(ClaimHistoryRepository.class);
         claimant = new User(CLAIMANT_ID, "Maya Tan", "maya@example.test", Role.CLAIMANT, Instant.now());
         officer = new User(OFFICER_ID, "Rafiq Lim", "rafiq@example.test", Role.OFFICER, Instant.now());
+        manager = new User(MANAGER_ID, "Darren Koh", "darren@example.test", Role.MANAGER, Instant.now());
         when(users.findById(any())).thenAnswer(invocation -> {
             UUID id = invocation.getArgument(0);
-            return Optional.of(id.equals(CLAIMANT_ID) ? claimant : officer);
+            if (id.equals(CLAIMANT_ID)) return Optional.of(claimant);
+            if (id.equals(OFFICER_ID)) return Optional.of(officer);
+            if (id.equals(MANAGER_ID)) return Optional.of(manager);
+            return Optional.empty();
         });
         when(claims.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
         when(requests.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
@@ -82,6 +89,35 @@ class ClaimServiceTest {
                     .anySatisfy(violation -> assertThat(violation.getPropertyPath().toString())
                             .isEqualTo("estimatedAmount"));
         }
+    }
+
+    @Test
+    void assigneesIncludeOfficersAndManagersButNotClaimants() {
+        List<Role> staffRoles = List.of(Role.OFFICER, Role.MANAGER);
+        when(users.findByRoleInOrderByName(staffRoles)).thenReturn(List.of(manager, officer));
+
+        List<User> assignees = service.assignees(MANAGER_ID);
+
+        assertThat(assignees).extracting(User::getRole)
+                .containsExactly(Role.MANAGER, Role.OFFICER)
+                .doesNotContain(Role.CLAIMANT);
+        verify(users).findByRoleInOrderByName(staffRoles);
+    }
+
+    @Test
+    void managerCanAssignClaimAndClaimantCannotBeAssigned() {
+        Claim claim = newClaim(ClaimStatus.SUBMITTED);
+        when(claims.findById(claim.getId())).thenReturn(Optional.of(claim));
+
+        var assigned = service.assign(MANAGER_ID, claim.getId(), new AssignRequest(MANAGER_ID));
+
+        assertThat(assigned.assignedOfficerId()).isEqualTo(MANAGER_ID);
+        assertThat(assigned.status()).isEqualTo(ClaimStatus.UNDER_REVIEW);
+        verify(history).save(argThat(event -> event.getAction().equals("ASSIGNED")));
+
+        assertThatThrownBy(() -> service.assign(MANAGER_ID, claim.getId(), new AssignRequest(CLAIMANT_ID)))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("officer or manager");
     }
 
     @Test

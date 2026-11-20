@@ -2,11 +2,11 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import {
   Claim,
+  ClaimAssignee,
   ClaimStatus,
   ClaimType,
   CreateClaim,
   DashboardSummary,
-  DemoUser,
   OfficerWorkload,
 } from '../models/claims';
 
@@ -65,7 +65,7 @@ export class ClaimsApiService {
     return this.http.get<OfficerWorkload[]>('/api/dashboard/workload');
   }
 
-  users() {
-    return this.http.get<DemoUser[]>('/api/demo/users');
+  assignees() {
+    return this.http.get<ClaimAssignee[]>('/api/demo/assignees');
   }
 }
