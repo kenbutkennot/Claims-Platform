@@ -65,3 +65,14 @@
 **Reasoning:** The native `value` bindings did not update the component fields, so requests kept using empty filters. Role changes previously left the router on its old page; switching while on the claimant form could leave an officer on the form, causing the backend's correct claimant-role check to reject submission. Search/status/type values now update before reloading, and switching claimant/staff always redirects to My Claims/dashboard respectively.
 
 **Verification:** Angular production build passed. Browser checks confirmed search for `0001` returns one result, `UNDER_REVIEW` returns the review claim, and `MOTOR` returns three claims. Role switching from the incident form redirects to `/dashboard` for staff and back to `/claims` for the claimant, with the selected demo user and page heading matching. No test claim was submitted.
+
+## Entry 7 - CORS rejection during claim submission
+**Prompt / instruction:** Diagnose and fix the repeated 403 when a claimant submits a new incident.
+
+**Suggestion:** Capture the browser request and response, compare the frontend-proxied request with a direct API request, then add a focused CORS regression test.
+
+**Decision:** Accepted.
+
+**Reasoning:** The browser sent the correct seeded claimant UUID. The 403 body was `Invalid CORS request`: `WebConfig` allowed only `http://localhost:4200`, while the shared browser used `http://127.0.0.1:4201`. This was a CORS-origin rejection, not a claimant authorization failure.
+
+**Verification:** Added exact allowlist entries for `localhost` and `127.0.0.1` on Angular ports 4200 and 4201, plus a MockMvc OPTIONS test that verifies these origins can POST with the demo header. Backend tests passed 9/9. The already-running backend process still has the old CORS config; restart it before retrying claim submission.

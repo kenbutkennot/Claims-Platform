@@ -46,7 +46,7 @@ cd frontend
 npm start
 ```
 
-Angular's development server proxies `/api` requests to `http://localhost:8080` using `frontend/proxy.conf.json`; restart the dev server after changing that file. Open [http://localhost:4200](http://localhost:4200). The API listens on port 8080. Swagger UI is at [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html).
+Angular's development server proxies `/api` requests to `http://localhost:8080` using `frontend/proxy.conf.json`; restart the dev server after changing that file. The API allows the local Angular origins `localhost` and `127.0.0.1` on ports 4200 and 4201. Open [http://localhost:4200](http://localhost:4200). The API listens on port 8080. Swagger UI is at [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html).
 
 The SQLite file is `backend/claims.db` when the backend is launched from `backend/`. Set `CLAIMS_DB_PATH` to choose another file. Stop the backend and delete `claims.db` (plus optional `claims.db-shm` and `claims.db-wal`) to reset the local data; the next development start recreates the schema and seed.
 
