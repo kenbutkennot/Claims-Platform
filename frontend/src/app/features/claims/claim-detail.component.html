@@ -45,11 +45,13 @@
                 <div class="request-meta"><span>{{ request.requestedAt | date:'d MMM y, h:mm a' }} by {{ request.requestedByName }}</span><span class="request-state">{{ request.status | lowercase }}</span></div>
                 <p>{{ request.message }}</p>
                 @if (request.response) { <div class="response-note"><strong>Your response</strong><p>{{ request.response }}</p></div> }
+                @else if (request.status === 'RESPONDED') { <div class="response-note"><strong>Submitted</strong><p>No additional response was provided in this demo.</p></div> }
                 @if (request.status === 'OPEN' && !staff) {
                   <label class="form-field response-field"><span>Your response</span>
                     <textarea rows="3" [value]="responseValues[request.id] || ''" (input)="responseValues[request.id] = $any($event.target).value"></textarea>
+                    <small>File uploads aren't available in this demo. You can submit without text.</small>
                   </label>
-                  <button class="button button-primary button-small" type="button" [disabled]="busy()" (click)="respond(request.id)">Send response</button>
+                  <button class="button button-primary button-small" type="button" [disabled]="busy()" (click)="respond(request.id)">Submit response</button>
                 }
               </article>
             }

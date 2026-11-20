@@ -92,11 +92,8 @@ export class ClaimDetailComponent implements OnInit {
 
   async respond(requestId: string): Promise<void> {
     const claim = this.claim();
-    const response = this.responseValues[requestId]?.trim();
-    if (!claim || !response) {
-      this.error.set('Enter a response before submitting.');
-      return;
-    }
+    if (!claim) return;
+    const response = this.responseValues[requestId]?.trim() ?? '';
     await this.perform(() => this.api.respond(claim.id, requestId, response));
     this.responseValues[requestId] = '';
   }

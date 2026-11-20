@@ -8,6 +8,7 @@ import com.example.claims.domain.Claim;
 import com.example.claims.domain.ClaimInformationRequest;
 import com.example.claims.domain.ClaimStatus;
 import com.example.claims.domain.ClaimType;
+import com.example.claims.domain.InformationRequestStatus;
 import com.example.claims.domain.Role;
 import com.example.claims.domain.User;
 import com.example.claims.infrastructure.ClaimHistoryRepository;
@@ -92,6 +93,18 @@ class ClaimServiceTest {
     }
 
     @Test
+    void allowsEmptyInformationResponseButRejectsMissingResponse() {
+        try (var factory = Validation.buildDefaultValidatorFactory()) {
+            var validator = factory.getValidator();
+
+            assertThat(validator.validate(new InformationResponseBody(""))).isEmpty();
+            assertThat(validator.validate(new InformationResponseBody(null)))
+                    .anySatisfy(violation -> assertThat(violation.getPropertyPath().toString())
+                            .isEqualTo("response"));
+        }
+    }
+
+    @Test
     void assigneesIncludeOfficersAndManagersButNotClaimants() {
         List<Role> staffRoles = List.of(Role.OFFICER, Role.MANAGER);
         when(users.findByRoleInOrderByName(staffRoles)).thenReturn(List.of(manager, officer));
@@ -157,6 +170,25 @@ class ClaimServiceTest {
         assertThat(infoRequest.getResponse()).isEqualTo("Report reference 42.");
         verify(history).save(argThat(event -> event.getAction().equals("INFORMATION_REQUESTED")));
         verify(history).save(argThat(event -> event.getAction().equals("INFORMATION_RECEIVED")));
+    }
+
+    @Test
+    void allowsClaimantToSubmitAnEmptyInformationResponse() {
+        Claim claim = newClaim(ClaimStatus.INFORMATION_REQUIRED);
+        ClaimInformationRequest infoRequest = new ClaimInformationRequest(
+                UUID.randomUUID(), claim, "Please upload the incident report.", officer, Instant.now());
+        when(claims.findById(claim.getId())).thenReturn(Optional.of(claim));
+        when(requests.findByIdAndClaimId(infoRequest.getId(), claim.getId())).thenReturn(Optional.of(infoRequest));
+        when(requests.findAllByClaimIdOrderByRequestedAtDesc(claim.getId())).thenReturn(List.of(infoRequest));
+
+        var response = service.respond(CLAIMANT_ID, claim.getId(), infoRequest.getId(),
+                new InformationResponseBody(""));
+
+        assertThat(response.status()).isEqualTo(ClaimStatus.UNDER_REVIEW);
+        assertThat(infoRequest.getStatus()).isEqualTo(InformationRequestStatus.RESPONDED);
+        assertThat(infoRequest.getResponse()).isEmpty();
+        verify(history).save(argThat(event -> event.getAction().equals("INFORMATION_RECEIVED")
+                && event.getRemarks().isEmpty()));
     }
 
     @Test

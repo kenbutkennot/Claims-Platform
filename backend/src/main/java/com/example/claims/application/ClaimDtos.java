@@ -29,7 +29,7 @@ public final class ClaimDtos {
 
     public record AssignRequest(@NotNull UUID officerId) {}
     public record InformationRequestBody(@NotBlank @Size(max = 1200) String message) {}
-    public record InformationResponseBody(@NotBlank @Size(max = 2000) String response) {}
+    public record InformationResponseBody(@NotNull @Size(max = 2000) String response) {}
     public record DecisionRequest(Boolean approved, BigDecimal approvedAmount, String reason) {}
     public record SettlementRequest(@NotNull @DecimalMin("0.00") BigDecimal amount) {}
 

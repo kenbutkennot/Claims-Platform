@@ -87,3 +87,14 @@
 **Reasoning:** The general demo-user list includes claimants and is intended for role switching, not assignment. The dedicated `/api/demo/assignees` endpoint and backend assignment check now both allow only officers and managers; the dropdown labels each assignee's role.
 
 **Verification:** Added service regression tests for assignee role filtering, manager assignment, and claimant rejection. Backend tests passed 11/11, Angular production build passed, and `git diff --check` passed. The browser's currently running backend returns 404 for `/api/demo/assignees`, confirming it must be restarted to load this route before the dropdown can populate.
+
+## Entry 9 - Permit empty information responses in the demo
+**Prompt / instruction:** Since file uploads are not implemented, allow claimants to submit an empty response to information requests for demo purposes.
+
+**Suggestion:** Accept an empty response string while continuing to reject a missing response value, and make the empty-submit behavior clear in the claimant UI.
+
+**Decision:** Accepted.
+
+**Reasoning:** The API previously rejected empty responses through `@NotBlank`, and the frontend also blocked submission when the text field was blank. The demo now accepts empty text, transitions the request and claim normally, and confirms that no additional response was provided.
+
+**Verification:** Added validation and workflow regression tests for empty and null responses. Backend tests passed 13/13 and `git diff --check` passed. The frontend build was not rerun.

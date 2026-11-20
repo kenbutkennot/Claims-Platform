@@ -160,12 +160,13 @@ public class ClaimService {
         }
         ClaimStatus previous = claim.getStatus();
         Instant now = clock.instant();
-        infoRequest.respond(body.response().trim(), now);
+        String response = body.response().trim();
+        infoRequest.respond(response, now);
         boolean hasOpenRequests = informationRequests.findAllByClaimIdOrderByRequestedAtDesc(claimId).stream()
                 .anyMatch(item -> item.getStatus() == InformationRequestStatus.OPEN);
         if (!hasOpenRequests) claim.resumeReview(now);
         record(claim, previous, claim.getStatus(), "INFORMATION_RECEIVED",
-                body.response().trim(), actor, now);
+                response, actor, now);
         return toDto(claim);
     }
 
