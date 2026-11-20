@@ -43,3 +43,14 @@
 **Reasoning:** The machine initially had Java 17 and Maven compilation reported release 21 unsupported. Temurin 21 was installed, and Maven tests pass under Java 21.
 
 **Verification:** Angular production build passed. Backend tests passed 8/8. The first API launch exposed ambiguous `ClaimService` constructors; marking the dependency-injection constructor with `@Autowired` fixed startup. A subsequent launch initialized SQLite, loaded six seeded claims, and returned dashboard and demo-user API responses successfully.
+
+## Entry 5 - Frontend API proxy
+**Prompt / instruction:** Diagnose the app taking time to load after the Spring Boot startup succeeded.
+
+**Suggestion:** Check the browser-rendered state and verify the frontend API path against the backend.
+
+**Decision:** Added an Angular dev-server proxy for `/api` requests to port 8080.
+
+**Reasoning:** The backend was healthy, but Angular used relative `/api` URLs and no proxy, so the app tried to fetch demo users from port 4200 and showed its API-unavailable state. A dev-server proxy is the smallest local-development fix and avoids changing API URL handling in components.
+
+**Verification:** Confirmed the proxy returns seeded users as JSON and verified the browser renders all six seeded claims with the manager queue after role selection. Angular production build and `git diff --check` passed.
