@@ -52,7 +52,7 @@ The SQLite file is `backend/claims.db` when the backend is launched from `backen
 
 ## Demo roles and workflow
 
-Use the **Demo user** selector in the top bar to switch between Maya Tan (claimant), Rafiq Lim or Anika Rao (officers), and Darren Koh (manager). This selector changes a demo identity header; it is deliberately not represented as secure authentication.
+Use the **Demo user** selector in the top bar to switch between Maya Tan (claimant), Rafiq Lim or Anika Rao (officers), and Darren Koh (manager). Switching to Maya returns to **My claims**; switching to an officer or manager opens the staff dashboard. This selector changes a demo identity header; it is deliberately not represented as secure authentication.
 
 Suggested demonstration:
 

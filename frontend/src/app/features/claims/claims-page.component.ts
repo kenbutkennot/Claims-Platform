@@ -45,6 +45,21 @@ export class ClaimsPageComponent implements OnInit {
     }
   }
 
+  updateSearch(value: string): void {
+    this.search = value;
+    void this.load();
+  }
+
+  updateStatus(value: string): void {
+    this.status = value;
+    void this.load();
+  }
+
+  updateType(value: string): void {
+    this.type = value;
+    void this.load();
+  }
+
   statusLabel(status: ClaimStatus): string {
     return status.replaceAll('_', ' ').toLowerCase().replace(/(^|\s)\S/g, (letter) => letter.toUpperCase());
   }

@@ -13,19 +13,19 @@
   <div class="filter-row">
     <label class="search-field">
       <span>Search claim number</span>
-      <input type="search" placeholder="e.g. CLM-2026" [(value)]="search" (input)="load()">
+      <input type="search" placeholder="e.g. CLM-2026" [value]="search" (input)="updateSearch($any($event.target).value)">
     </label>
     @if (session.current()?.role !== 'CLAIMANT') {
       <label class="filter-field">
         <span>Status</span>
-        <select [(value)]="status" (change)="load()">
+        <select [value]="status" (change)="updateStatus($any($event.target).value)">
           <option value="">All statuses</option>
           @for (option of statuses; track option) { <option [value]="option">{{ statusLabel(option) }}</option> }
         </select>
       </label>
       <label class="filter-field">
         <span>Claim type</span>
-        <select [(value)]="type" (change)="load()">
+        <select [value]="type" (change)="updateType($any($event.target).value)">
           <option value="">All types</option>
           @for (option of types; track option) { <option [value]="option">{{ typeLabel(option) }}</option> }
         </select>

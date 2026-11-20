@@ -19,8 +19,8 @@ export class App implements OnInit {
   selectUser(id: string): void {
     const user = this.session.users().find((item) => item.id === id) ?? null;
     this.session.select(user);
-    if (user?.role === 'CLAIMANT' && this.router.url.startsWith('/dashboard')) {
-      void this.router.navigate(['/claims']);
+    if (user) {
+      void this.router.navigate([user.role === 'CLAIMANT' ? '/claims' : '/dashboard']);
     }
   }
 }
