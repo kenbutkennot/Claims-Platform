@@ -1,0 +1,53 @@
+<section class="page-heading compact-heading">
+  <div>
+    <a class="back-link" routerLink="/claims">← Back to my claims</a>
+    <p class="eyebrow">NEW CLAIM</p>
+    <h1>Report an incident</h1>
+    <p class="page-subtitle">Tell us what happened. Your claim can be tracked from your claims page.</p>
+  </div>
+</section>
+<form class="panel form-panel" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+  <div class="form-section">
+    <h2>Incident details</h2>
+    <div class="form-grid">
+      <label class="form-field">
+        <span>Claim type <b>*</b></span>
+        <select formControlName="claimType">
+          <option value="MOTOR">Motor</option>
+          <option value="PROPERTY">Property</option>
+        </select>
+      </label>
+      <label class="form-field">
+        <span>Incident date <b>*</b></span>
+        <input type="date" formControlName="incidentDate" [max]="today">
+        @if (form.controls.incidentDate.touched && form.controls.incidentDate.invalid) { <small class="field-error">Enter the date of the incident.</small> }
+      </label>
+      @if (form.controls.claimType.value === 'MOTOR') {
+        <label class="form-field">
+          <span>Vehicle registration</span>
+          <input type="text" formControlName="vehicleRegistration" maxlength="40" autocomplete="off">
+          <small>Optional. Enter the registration of the insured vehicle.</small>
+        </label>
+      }
+      <label class="form-field">
+        <span>Estimated amount (SGD) <b>*</b></span>
+        <div class="currency-input"><span>$</span><input type="number" formControlName="estimatedAmount" min="0" step="0.01"></div>
+        @if (form.controls.estimatedAmount.touched && form.controls.estimatedAmount.invalid) { <small class="field-error">Enter a non-negative estimate.</small> }
+      </label>
+      <label class="form-field full-width">
+        <span>Incident description <b>*</b></span>
+        <textarea formControlName="incidentDescription" rows="5" maxlength="2000"></textarea>
+        @if (form.controls.incidentDescription.touched && form.controls.incidentDescription.invalid) { <small class="field-error">Add a description of up to 2,000 characters.</small> }
+      </label>
+      <label class="form-field full-width">
+        <span>Incident location</span>
+        <input type="text" formControlName="incidentLocation" maxlength="240" autocomplete="street-address">
+      </label>
+    </div>
+  </div>
+  @if (error()) { <div class="inline-error" role="alert">{{ error() }}</div> }
+  <div class="form-actions">
+    <a class="button button-secondary" routerLink="/claims">Cancel</a>
+    <button class="button button-primary" type="submit" [disabled]="saving()">{{ saving() ? 'Submitting…' : 'Submit claim' }}</button>
+  </div>
+</form>

@@ -1,0 +1,48 @@
+@if (!session.ready()) {
+  <main class="boot-screen"><span class="loading-mark"></span><p>Connecting to claims workspace</p></main>
+} @else if (session.current(); as user) {
+  <div class="workspace">
+    <aside class="sidebar">
+      <a class="brand" routerLink="/claims" aria-label="Chubb claims home">
+        <span class="brand-mark">C</span>
+        <span><strong>CHUBB</strong><small>Claims workspace</small></span>
+      </a>
+      <div class="nav-caption">WORKSPACE</div>
+      <nav class="primary-nav" aria-label="Main navigation">
+        @if (user.role !== 'CLAIMANT') {
+          <a routerLink="/dashboard" routerLinkActive="active"><span class="nav-glyph">▦</span>Dashboard</a>
+        }
+        <a routerLink="/claims" routerLinkActive="active"><span class="nav-glyph">▤</span>{{ user.role === 'CLAIMANT' ? 'My claims' : 'Claims queue' }}</a>
+        @if (user.role === 'CLAIMANT') {
+          <a routerLink="/claims/new" routerLinkActive="active"><span class="nav-glyph">＋</span>Report an incident</a>
+        }
+      </nav>
+      <div class="sidebar-note">
+        <span class="note-label">DEMO ENVIRONMENT</span>
+        <p>Role switching is for assessment use only. It is not authentication.</p>
+      </div>
+      <div class="sidebar-profile">
+        <span class="avatar">{{ user.name.charAt(0) }}</span>
+        <span class="profile-copy"><strong>{{ user.name }}</strong><small>{{ user.role | titlecase }}</small></span>
+      </div>
+    </aside>
+
+    <div class="main-column">
+      <header class="topbar">
+        <span class="topbar-label">APAC CLAIMS OPERATIONS</span>
+        <label class="role-switch">
+          <span>Demo user</span>
+          <select [value]="user.id" (change)="selectUser($any($event.target).value)">
+            @for (option of session.users(); track option.id) {
+              <option [value]="option.id">{{ option.name }} / {{ option.role | titlecase }}</option>
+            }
+          </select>
+        </label>
+      </header>
+      <main class="page-content"><router-outlet /></main>
+      <footer class="footer">Claims workspace <span>Local assessment prototype</span></footer>
+    </div>
+  </div>
+} @else {
+  <main class="boot-screen error-screen"><strong>Claims workspace unavailable</strong><p>{{ session.error() || 'Start the backend, then refresh this page.' }}</p></main>
+}

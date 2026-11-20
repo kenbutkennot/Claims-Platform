@@ -1,0 +1,70 @@
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">{{ session.current()?.role === 'CLAIMANT' ? 'CLAIMANT PORTAL' : 'CLAIMS OPERATIONS' }}</p>
+    <h1>{{ session.current()?.role === 'CLAIMANT' ? 'My claims' : 'Claims queue' }}</h1>
+    <p class="page-subtitle">{{ session.current()?.role === 'CLAIMANT' ? 'Follow each claim and respond to requests for information.' : 'Review incoming work and move each claim through assessment.' }}</p>
+  </div>
+  @if (session.current()?.role === 'CLAIMANT') {
+    <a class="button button-primary" routerLink="/claims/new">Report an incident <span aria-hidden="true">+</span></a>
+  }
+</section>
+
+<section class="panel list-panel" aria-label="Claims">
+  <div class="filter-row">
+    <label class="search-field">
+      <span>Search claim number</span>
+      <input type="search" placeholder="e.g. CLM-2026" [(value)]="search" (input)="load()">
+    </label>
+    @if (session.current()?.role !== 'CLAIMANT') {
+      <label class="filter-field">
+        <span>Status</span>
+        <select [(value)]="status" (change)="load()">
+          <option value="">All statuses</option>
+          @for (option of statuses; track option) { <option [value]="option">{{ statusLabel(option) }}</option> }
+        </select>
+      </label>
+      <label class="filter-field">
+        <span>Claim type</span>
+        <select [(value)]="type" (change)="load()">
+          <option value="">All types</option>
+          @for (option of types; track option) { <option [value]="option">{{ typeLabel(option) }}</option> }
+        </select>
+      </label>
+    }
+    <span class="result-count">{{ claims().length }} {{ claims().length === 1 ? 'claim' : 'claims' }}</span>
+  </div>
+
+  @if (error()) { <div class="inline-error" role="alert">{{ error() }}</div> }
+  @if (loading()) {
+    <div class="loading-rows" aria-label="Loading claims"><span></span><span></span><span></span></div>
+  } @else if (claims().length === 0) {
+    <div class="empty-state">
+      <h2>No claims found</h2>
+      <p>{{ session.current()?.role === 'CLAIMANT' ? 'Your submitted claims will appear here.' : 'Try changing the filters or check back when new claims arrive.' }}</p>
+      @if (session.current()?.role === 'CLAIMANT') { <a class="text-link" routerLink="/claims/new">Submit your first claim</a> }
+    </div>
+  } @else {
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Claim</th><th>Type</th><th>Incident date</th><th>Submitted</th>
+          @if (session.current()?.role !== 'CLAIMANT') { <th>Assigned to</th> }
+          <th>Status</th><th class="amount-column">Estimate</th>
+        </tr></thead>
+        <tbody>
+          @for (claim of claims(); track claim.id) {
+            <tr>
+              <td><a class="claim-link" [routerLink]="['/claims', claim.id]">{{ claim.claimNumber }}<small>{{ claim.claimantName }}</small></a></td>
+              <td>{{ typeLabel(claim.claimType) }}</td>
+              <td>{{ claim.incidentDate | date:'d MMM y' }}</td>
+              <td>{{ claim.submittedAt | date:'d MMM y' }}</td>
+              @if (session.current()?.role !== 'CLAIMANT') { <td>{{ claim.assignedOfficerName || 'Unassigned' }}</td> }
+              <td><span class="status-badge" [class]="'status-badge status-' + claim.status.toLowerCase()">{{ statusLabel(claim.status) }}</span></td>
+              <td class="amount-column">{{ claim.estimatedAmount | number:'1.2-2' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

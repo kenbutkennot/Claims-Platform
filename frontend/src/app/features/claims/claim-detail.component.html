@@ -1,0 +1,119 @@
+@if (loading()) {
+  <div class="loading-rows"><span></span><span></span><span></span></div>
+} @else if (claim(); as item) {
+  <section class="page-heading detail-heading">
+    <div>
+      <a class="back-link" routerLink="/claims">← {{ staff ? 'Back to claims queue' : 'Back to my claims' }}</a>
+      <p class="eyebrow">{{ item.claimType }} CLAIM</p>
+      <h1>{{ item.claimNumber }}</h1>
+      <p class="page-subtitle">Submitted {{ item.submittedAt | date:'d MMMM y' }} by {{ item.claimantName }}</p>
+    </div>
+    <span class="status-badge large-badge" [class]="'status-badge large-badge status-' + item.status.toLowerCase()">{{ statusLabel(item.status) }}</span>
+  </section>
+
+  @if (error()) { <div class="inline-error" role="alert">{{ error() }}</div> }
+  @if (notice()) { <div class="inline-success" role="status">{{ notice() }}</div> }
+
+  <div class="detail-grid">
+    <div class="detail-main">
+      <section class="panel detail-section">
+        <div class="section-title"><h2>Incident overview</h2><span>{{ item.claimType === 'MOTOR' ? 'Motor' : 'Property' }}</span></div>
+        <dl class="detail-facts">
+          <div><dt>Incident date</dt><dd>{{ item.incidentDate | date:'d MMM y' }}</dd></div>
+          <div><dt>Estimated amount</dt><dd>SGD {{ item.estimatedAmount | number:'1.2-2' }}</dd></div>
+          @if (item.incidentLocation) { <div><dt>Location</dt><dd>{{ item.incidentLocation }}</dd></div> }
+          @if (item.vehicleRegistration) { <div><dt>Vehicle registration</dt><dd>{{ item.vehicleRegistration }}</dd></div> }
+          <div class="description-fact"><dt>Description</dt><dd>{{ item.incidentDescription }}</dd></div>
+        </dl>
+      </section>
+
+      @if (item.decisionReason) {
+        <section class="panel decision-panel">
+          <div class="section-title"><h2>Decision</h2><span>{{ item.status === 'REJECTED' ? 'Not approved' : item.status === 'SETTLED' ? 'Settled' : 'Approved' }}</span></div>
+          <p>{{ item.decisionReason }}</p>
+          @if (item.approvedAmount !== null) { <div class="decision-amount"><span>Approved amount</span><strong>SGD {{ item.approvedAmount | number:'1.2-2' }}</strong></div> }
+          @if (item.settledAt) { <div class="decision-amount"><span>Settlement</span><strong>SGD {{ item.settledAmount | number:'1.2-2' }} on {{ item.settledAt | date:'d MMM y' }}</strong></div> }
+        </section>
+      }
+
+      @if (item.informationRequests.length > 0) {
+        <section class="panel detail-section">
+          <div class="section-title"><h2>Information requests</h2></div>
+          <div class="request-list">
+            @for (request of item.informationRequests; track request.id) {
+              <article class="request-item">
+                <div class="request-meta"><span>{{ request.requestedAt | date:'d MMM y, h:mm a' }} by {{ request.requestedByName }}</span><span class="request-state">{{ request.status | lowercase }}</span></div>
+                <p>{{ request.message }}</p>
+                @if (request.response) { <div class="response-note"><strong>Your response</strong><p>{{ request.response }}</p></div> }
+                @if (request.status === 'OPEN' && !staff) {
+                  <label class="form-field response-field"><span>Your response</span>
+                    <textarea rows="3" [value]="responseValues[request.id] || ''" (input)="responseValues[request.id] = $any($event.target).value"></textarea>
+                  </label>
+                  <button class="button button-primary button-small" type="button" [disabled]="busy()" (click)="respond(request.id)">Send response</button>
+                }
+              </article>
+            }
+          </div>
+        </section>
+      }
+    </div>
+
+    <aside class="detail-side">
+      @if (staff) {
+        <section class="panel action-panel">
+          <h2>Claim actions</h2>
+          <p class="panel-hint">Actions are checked by the API against your demo role.</p>
+          <form [formGroup]="assignmentForm" (ngSubmit)="assign()" class="action-form">
+            <label class="form-field"><span>Assigned officer</span>
+              <select formControlName="officerId">
+                <option value="">Select an officer</option>
+                @for (officer of officers(); track officer.id) { <option [value]="officer.id">{{ officer.name }}</option> }
+              </select>
+            </label>
+            <button class="button button-secondary button-full" [disabled]="busy() || assignmentForm.invalid">Assign claim</button>
+          </form>
+
+          @if (canReview && item.status === 'UNDER_REVIEW') {
+            <form [formGroup]="informationForm" (ngSubmit)="requestInformation()" class="action-form action-divider">
+              <label class="form-field"><span>Request more information</span>
+                <textarea rows="3" formControlName="message"></textarea>
+              </label>
+              <button class="button button-secondary button-full" [disabled]="busy()">Send request</button>
+            </form>
+            <form [formGroup]="decisionForm" class="action-form action-divider">
+              <label class="form-field"><span>Decision reason</span><textarea rows="3" formControlName="reason"></textarea></label>
+              <label class="form-field"><span>Approved amount (SGD)</span><input type="number" min="0" step="0.01" formControlName="approvedAmount"></label>
+              <div class="button-row">
+                <button class="button button-primary" type="button" [disabled]="busy()" (click)="decide(true)">Approve</button>
+                <button class="button button-danger" type="button" [disabled]="busy()" (click)="decide(false)">Reject</button>
+              </div>
+            </form>
+          }
+
+          @if (canReview && item.status === 'APPROVED') {
+            <form [formGroup]="settlementForm" (ngSubmit)="settle()" class="action-form action-divider">
+              <label class="form-field"><span>Settlement amount (SGD)</span><input type="number" min="0" step="0.01" formControlName="amount"></label>
+              <button class="button button-primary button-full" [disabled]="busy() || settlementForm.invalid">Record settlement</button>
+            </form>
+          }
+        </section>
+      }
+      <section class="panel timeline-panel">
+        <div class="section-title"><h2>Claim history</h2></div>
+        <ol class="timeline">
+          @for (event of item.history; track event.id) {
+            <li>
+              <span class="timeline-marker"></span>
+              <div><strong>{{ event.action.replaceAll('_', ' ') | titlecase }}</strong>
+                <p>{{ event.remarks }}</p>
+                <small>{{ event.createdAt | date:'d MMM y, h:mm a' }} <span>by {{ event.changedByName }}</span></small>
+              </div>
+            </li>
+          }
+        </ol>
+      </section>
+    </aside>
+  </div>
+} @else if (error()) {
+  <div class="inline-error" role="alert">{{ error() }}</div>
+}

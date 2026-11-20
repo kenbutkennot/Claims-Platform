@@ -1,0 +1,50 @@
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">CLAIMS OPERATIONS</p>
+    <h1>Team overview</h1>
+    <p class="page-subtitle">Current claim volumes and outstanding exposure across the queue.</p>
+  </div>
+  <span class="updated-label">Live from local claims data</span>
+</section>
+
+@if (error()) { <div class="inline-error" role="alert">{{ error() }}</div> }
+@if (loading()) {
+  <div class="loading-rows"><span></span><span></span><span></span></div>
+} @else if (summary(); as data) {
+  <section class="metric-grid" aria-label="Claims summary">
+    <article class="metric-tile metric-feature"><span>Total claims</span><strong>{{ data.totalClaims }}</strong><small>Across all statuses</small></article>
+    <article class="metric-tile"><span>Awaiting review</span><strong>{{ data.awaitingReview }}</strong><small>Submitted, unreviewed</small></article>
+    <article class="metric-tile"><span>Under review</span><strong>{{ data.underReview }}</strong><small>Active assessments</small></article>
+    <article class="metric-tile"><span>Needs information</span><strong>{{ data.informationRequired }}</strong><small>Waiting for claimant</small></article>
+    <article class="metric-tile"><span>Approved, not settled</span><strong>{{ data.approvedUnsettled }}</strong><small>Ready for settlement</small></article>
+    <article class="metric-tile"><span>Rejected</span><strong>{{ data.rejected }}</strong><small>Decision recorded</small></article>
+  </section>
+
+  <div class="dashboard-bottom">
+    <section class="panel exposure-panel">
+      <div class="section-title"><h2>Outstanding exposure</h2><span>SGD</span></div>
+      <p class="exposure-value">{{ data.estimatedOutstandingExposure | number:'1.2-2' }}</p>
+      <p class="muted-copy">Estimated amounts for claims not rejected or settled. This is not paid loss.</p>
+      <div class="exposure-secondary">
+        <span>Approved but unsettled</span>
+        <strong>SGD {{ data.approvedUnsettledAmount | number:'1.2-2' }}</strong>
+      </div>
+    </section>
+    <section class="panel workload-panel">
+      <div class="section-title"><h2>Officer workload</h2><span>Active / assigned</span></div>
+      @if (workload().length === 0) {
+        <p class="muted-copy">No officers are available.</p>
+      } @else {
+        <div class="workload-list">
+          @for (officer of workload(); track officer.officerId) {
+            <div class="workload-row">
+              <span class="avatar small-avatar">{{ officer.officerName.charAt(0) }}</span>
+              <span class="workload-name">{{ officer.officerName }}<small>{{ officer.assignedClaims }} assigned</small></span>
+              <strong>{{ officer.activeClaims }}<small> active</small></strong>
+            </div>
+          }
+        </div>
+      }
+    </section>
+  </div>
+}
